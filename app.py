@@ -1,188 +1,134 @@
 import streamlit as st
+import cv2
 import numpy as np
-from PIL import Image
 from ultralytics import YOLO
+import pytesseract
+import re
+from PIL import Image
 
-st.set_page_config(page_title="Smart Waste Classifier", layout="centered")
+# ----------- TESSERACT PATH -----------
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
-st.title("Smart Waste Detection System")
+# ----------- LOAD MODEL -----------
+model = YOLO("best.pt")
 
-# Load YOLO model
-@st.cache_resource
-def load_model():
-    model = YOLO("models/best.pt")
-    return model
-
-model = load_model()
-
-# Disposal instructions
-instructions = {
-
-"plastic": """
-Dustbin: Dry Waste (Blue Bin)
-
-Steps:
-1. Empty the container
-2. Rinse lightly if dirty
-3. Remove cap if possible
-4. Crush bottle to save space
-""",
-
-"paper": """
-Dustbin: Dry Waste (Blue Bin)
-
-Steps:
-1. Ensure paper is dry
-2. Remove plastic covers
-3. Stack or fold large sheets
-""",
-
-"cardboard": """
-Dustbin: Dry Waste (Blue Bin)
-
-Steps:
-1. Remove tape or plastic
-2. Flatten the cardboard
-3. Ensure it is dry
-""",
-
-"glass": """
-Dustbin: Dry Waste (Blue Bin)
-
-Steps:
-1. Empty the bottle
-2. Remove caps
-3. Place carefully to avoid breakage
-""",
-
-"trash": """
-Dustbin: General Waste (Green Bin)
-
-Steps:
-1. Ensure it cannot be recycled
-2. Place directly in green bin
-"""
+# ----------- KNOWLEDGE BASE -----------
+plastic_info = {
+    "1": {"name": "PET (Polyethylene Terephthalate)", "bin": "Blue Bin (Recyclable)", "instruction": "Wash before recycling. Common in water bottles."},
+    "2": {"name": "HDPE (High-Density Polyethylene)", "bin": "Blue Bin (Recyclable)", "instruction": "Rinse and recycle. Used in milk containers."},
+    "3": {"name": "PVC (Polyvinyl Chloride)", "bin": "General Waste", "instruction": "Not easily recyclable. Avoid if possible."},
+    "4": {"name": "LDPE (Low-Density Polyethylene)", "bin": "Special Collection", "instruction": "Recycle at designated centers."},
+    "5": {"name": "PP (Polypropylene)", "bin": "Blue Bin (Recyclable)", "instruction": "Clean before recycling. Used in food containers."},
+    "6": {"name": "PS (Polystyrene)", "bin": "General Waste", "instruction": "Not recyclable in most areas."},
+    "7": {"name": "Other Plastics", "bin": "General Waste", "instruction": "Difficult to recycle. Dispose carefully."}
 }
 
-# Bin color mapping
-bin_color = {
-"plastic": "blue",
-"paper": "blue",
-"cardboard": "blue",
-"glass": "blue",
-"trash": "green"
-}
+# ----------- GAMIFICATION INIT -----------
+if "score" not in st.session_state:
+    st.session_state.score = 0
 
-option = st.radio(
-"Choose Input Method",
-["Upload Image", "Capture from Webcam"]
-)
+if "item_count" not in st.session_state:
+    st.session_state.item_count = 0
 
-def run_detection(image):
+# ----------- GAMIFICATION LOGIC -----------
+def get_points(pred):
+    if pred in ["1", "2", "5"]:
+        return 5
+    elif pred in ["4"]:
+        return 3
+    else:
+        return 1
 
-    results = model(image)
+def get_badge(score):
+    if score >= 50:
+        return "🏆 Recycling Champion"
+    elif score >= 30:
+        return "🌟 Eco Warrior"
+    elif score >= 10:
+        return "🌱 Beginner Recycler"
+    else:
+        return "♻️ Getting Started"
 
-    result = results[0]
+# ----------- OCR FUNCTION -----------
+def extract_digit(image):
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray = cv2.convertScaleAbs(gray, alpha=2, beta=50)
+    gray = cv2.GaussianBlur(gray, (5,5), 0)
 
-    detected_class = None
-    annotated_frame = image
+    h, w = gray.shape
+    crop = gray[int(h*0.4):int(h*0.8), int(w*0.3):int(w*0.7)]
 
-    # Classification model
-    if result.probs is not None:
-        class_id = int(result.probs.top1)
-        detected_class = result.names[class_id]
+    thresh = cv2.adaptiveThreshold(
+        crop, 255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        11, 2
+    )
 
-    # Detection model
-    elif result.boxes is not None and len(result.boxes) > 0:
-        annotated_frame = result.plot()
-        class_id = int(result.boxes.cls[0])
-        detected_class = result.names[class_id]
+    thresh = cv2.resize(thresh, None, fx=2, fy=2)
 
-    return annotated_frame, detected_class
+    text = pytesseract.image_to_string(
+        thresh,
+        config='--psm 10 -c tessedit_char_whitelist=1234567'
+    )
 
+    digit = re.findall(r'\d', text)
+    return digit[0] if digit else None
 
-def show_bin_card(class_name):
+# ----------- PREDICTION FUNCTION -----------
+def predict_image(image):
+    img = np.array(image)
 
-    color = bin_color.get(class_name, "gray")
+    ocr_result = extract_digit(img)
 
-    if color == "blue":
-        st.markdown(
-        """
-        ### Recommended Bin
-        <div style="background-color:#2196F3;padding:15px;border-radius:10px;color:white">
-        <h3>BLUE BIN</h3>
-        Dry / Recyclable Waste
-        </div>
-        """,
-        unsafe_allow_html=True
-        )
+    result = model(img)[0]
+    model_pred = result.names[result.probs.top1]
+    model_digit = re.findall(r'\d', model_pred)[0]
 
-    elif color == "green":
-        st.markdown(
-        """
-        ### Recommended Bin
-        <div style="background-color:#4CAF50;padding:15px;border-radius:10px;color:white">
-        <h3>GREEN BIN</h3>
-        General Waste
-        </div>
-        """,
-        unsafe_allow_html=True
-        )
+    if ocr_result is not None:
+        final_pred = ocr_result
+        source = "OCR"
+    else:
+        final_pred = model_digit
+        source = "Model"
 
+    return final_pred, source
 
-# Upload Image
-if option == "Upload Image":
+# ----------- UI -----------
+st.title("♻️ Smart Waste Detection System")
 
-    uploaded_file = st.file_uploader("Upload an image", type=["jpg","jpeg","png"])
+# ----------- IMAGE UPLOAD -----------
+st.header(" Upload Image")
 
-    if uploaded_file is not None:
+uploaded_file = st.file_uploader("Upload waste image", type=["jpg", "png", "jpeg"])
 
-        image = Image.open(uploaded_file)
-        image_np = np.array(image)
+if uploaded_file is not None:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
 
-        st.image(image, caption="Original Image", width="stretch")
+    pred, source = predict_image(image)
 
-        if st.button("Run Detection"):
+    st.success(f"🔢 Resin Code: {pred}")
+    st.info(f"Detected by: {source}")
 
-            result_img, detected_class = run_detection(image_np)
+    info = plastic_info.get(pred)
 
-            st.image(result_img, caption="Detection Result", width="stretch")
+    if info:
+        st.subheader(f"♻️ Category: {info['name']}")
+        st.write(f"🗑️ Bin: {info['bin']}")
+        st.write(f"📋 Instruction: {info['instruction']}")
 
-            if detected_class:
+    # ----------- GAMIFICATION UPDATE -----------
+    points = get_points(pred)
+    st.session_state.score += points
+    st.session_state.item_count += 1
 
-                st.subheader(f"Detected Object: {detected_class}")
+    st.success(f"🌱 +{points} Carbon Points Earned!")
 
-                show_bin_card(detected_class)
+    # ----------- SCOREBOARD -----------
+    st.subheader("📊 Your Eco Score")
+    st.write(f"♻️ Items Sorted: {st.session_state.item_count}")
+    st.write(f"🌱 Total Carbon Points: {st.session_state.score}")
 
-                st.subheader("Disposal Instructions")
-
-                st.write(instructions.get(detected_class, "No instructions available"))
-
-
-# Webcam Capture
-if option == "Capture from Webcam":
-
-    camera_image = st.camera_input("Capture Image")
-
-    if camera_image is not None:
-
-        image = Image.open(camera_image)
-        image_np = np.array(image)
-
-        st.image(image, caption="Captured Image", width="stretch")
-
-        if st.button("Run Detection"):
-
-            result_img, detected_class = run_detection(image_np)
-
-            st.image(result_img, caption="Detection Result", width="stretch")
-
-            if detected_class:
-
-                st.subheader(f"Detected Object: {detected_class}")
-
-                show_bin_card(detected_class)
-
-                st.subheader("Disposal Instructions")
-
-                st.write(instructions.get(detected_class, "No instructions available"))
+    badge = get_badge(st.session_state.score)
+    st.success(f"🏆 Badge: {badge}")
