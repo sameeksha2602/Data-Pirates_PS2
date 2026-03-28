@@ -56,6 +56,8 @@ The system displays the waste category, recommended disposal bin, and step-by-st
 Users receive carbon points and badges based on their interactions.
 Output Screenshots:
 <img width="1600" height="782" alt="image" src="https://github.com/user-attachments/assets/07743345-bbe1-454a-bf35-36ec918a7188" />
+<img width="1600" height="751" alt="image" src="https://github.com/user-attachments/assets/2193052c-3524-4fad-818e-96a561ce355d" />
+
 <img width="1600" height="724" alt="image" src="https://github.com/user-attachments/assets/fd855d6f-efb2-4e95-8777-1509ea07f58c" />
 <img width="1600" height="733" alt="image" src="https://github.com/user-attachments/assets/5e7a0eee-cc79-4be6-80eb-b674fa9c24d8" />
 <img width="1600" height="729" alt="image" src="https://github.com/user-attachments/assets/215fcb7b-ede8-427b-8e8a-5dfd5f0c00b9" />
@@ -66,6 +68,10 @@ Output Screenshots:
 
 accuracy for plastic seregation:
 <img width="1600" height="897" alt="image" src="https://github.com/user-attachments/assets/0f04bf8a-9295-4e4c-811c-8019890da2f2" />
+
+accuracy using yolov8 for category classification:
+<img width="1916" height="997" alt="image" src="https://github.com/user-attachments/assets/1b66f275-b03d-461a-b83e-4263446a9382" />
+
 
 video demonstration:
 https://drive.google.com/file/d/1qd5hQdhPAdSG1zfYiubbXIp61ZyVLbAh/view?usp=sharing
