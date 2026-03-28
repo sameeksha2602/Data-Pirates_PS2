@@ -2,43 +2,33 @@ Smart Waste Detection System
 Overview
 
 The Smart Waste Detection System is an AI-based application developed to improve waste segregation by automatically identifying waste types and providing appropriate disposal guidance.
-Dataset links:https://drive.google.com/drive/folders/1IZMXkMT8puUf3Zej2oZ_8A_Jkds33Tnw?usp=sharing
-              https://drive.google.com/drive/folders/1yuGDoMEkYD8WFKGxV6bv-GNN3tQ9OLyw?usp=sharing
+
+Datasets:
+
+https://drive.google.com/drive/folders/1IZMXkMT8puUf3Zej2oZ_8A_Jkds33Tnw?usp=sharing
+https://drive.google.com/drive/folders/1yuGDoMEkYD8WFKGxV6bv-GNN3tQ9OLyw?usp=sharing
 
 Improper waste segregation leads to inefficient recycling and increased landfill waste. This system addresses this issue using a hybrid approach that combines deep learning and optical character recognition (OCR) to enhance classification accuracy.
 
 Key Features
-Automated waste classification using a YOLOv8-based model,
-Resin code detection using OCR for plastic identification,
-Hybrid decision mechanism (OCR prioritization with model fallback),
-Support for both image upload and live camera-based detection,
-Recommendation of appropriate disposal bins,
-disposal instructions,
-Gamification system with carbon points and badges,
-User-friendly interface built with Streamlit,
-Technologies Used,
-Python,
-YOLOv8 (Ultralytics) for image classification,
-OpenCV for image preprocessing,
-Tesseract OCR for text extraction,
-Streamlit for web application interface and
+Automated waste classification using a YOLOv8-based model
+Resin code detection using OCR for plastic identification
+Hybrid decision mechanism (OCR prioritization with model fallback)
+Support for both image upload and live camera-based detection
+Recommendation of appropriate disposal bins
+Disposal instructions
+Gamification system with carbon points and badges
+User-friendly interface built with Streamlit
+Technologies Used
+Python
+YOLOv8 (Ultralytics) for image classification
+OpenCV for image preprocessing
+Tesseract OCR for text extraction
+Streamlit for web application interface
 NumPy and PIL for image handling
 System Workflow
-Input (Upload Image / Live Camera)
-          ↓
-Image Preprocessing (OpenCV)
-          ↓
-OCR Detection (Resin Code)
-          ↓
-YOLOv8 Model Prediction
-          ↓
-Hybrid Decision Logic
-          ↓
-Waste Classification
-          ↓
-Bin Recommendation and Instructions
-          ↓
-Gamification Feedback
+<img width="363" height="403" alt="image" src="https://github.com/user-attachments/assets/776bfcdd-5373-4bf9-add6-49eef3bdc6f7" />
+
 | Score Range | Badge                 |
 | ----------- | --------------------- |
 | 0–9         | ♻️ Getting Started    |
