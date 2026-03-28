@@ -8,20 +8,20 @@ Dataset links:https://drive.google.com/drive/folders/1IZMXkMT8puUf3Zej2oZ_8A_Jkd
 Improper waste segregation leads to inefficient recycling and increased landfill waste. This system addresses this issue using a hybrid approach that combines deep learning and optical character recognition (OCR) to enhance classification accuracy.
 
 Key Features
-Automated waste classification using a YOLOv8-based model
-Resin code detection using OCR for plastic identification
-Hybrid decision mechanism (OCR prioritization with model fallback)
-Support for both image upload and live camera-based detection
-Recommendation of appropriate disposal bins
-Step-by-step disposal instructions
-Gamification system with carbon points and badges
-User-friendly interface built with Streamlit
-Technologies Used
-Python
-YOLOv8 (Ultralytics) for image classification
-OpenCV for image preprocessing
-Tesseract OCR for text extraction
-Streamlit for web application interface
+Automated waste classification using a YOLOv8-based model,
+Resin code detection using OCR for plastic identification,
+Hybrid decision mechanism (OCR prioritization with model fallback),
+Support for both image upload and live camera-based detection,
+Recommendation of appropriate disposal bins,
+disposal instructions,
+Gamification system with carbon points and badges,
+User-friendly interface built with Streamlit,
+Technologies Used,
+Python,
+YOLOv8 (Ultralytics) for image classification,
+OpenCV for image preprocessing,
+Tesseract OCR for text extraction,
+Streamlit for web application interface and
 NumPy and PIL for image handling
 System Workflow
 Input (Upload Image / Live Camera)
